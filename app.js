@@ -5,8 +5,9 @@ const FluentHelper = require('./helper/FluentHelper');
 const configs = require('./configs');
 const MongoConnectionHelper = require('./MongoConnectionHelper');
 const DateUtil = require('./utils/DateUtil');
+const SlackHelper = require('./helper/SlackHelper');
 
-const TARGET_DB = 'log_backup';
+const TARGET_DB = configs.DbMongo.targetDb;
 
 let dbConnection = null;
 let dbTarget = null;
@@ -22,25 +23,25 @@ client.on('error', (err) => {
     console.log(new Error().stack);
 });
 
-client.connect(configs.App.port, configs.App.uri, async () => {
-    await FluentHelper.ready();
-    
-    dbConnection = await MongoConnectionHelper.setConnection(configs.DbMongo);
-    dbTarget = dbConnection.db(TARGET_DB);
-})
+client.on('message', async (message) => {
+    const parser = new Parser(message)
+    await parser.startParse();
+});
 
-async function tryCatchWrapper(collection, fn, data, source) {
-    let success = false;
-    try {
-        await fn.bind(collection)(data);
-        success = true;
-    }
-    catch(err) {
-        console.log(`${source} - ${data._id} ${err.message}`);
-        success = false;
-    }
+start();
 
-    return success;
+function start() {
+    (async () => {
+        await SlackHelper.ready();
+
+        await FluentHelper.ready();
+        await FluentHelper.sendLog('test', { data: 1234 });
+
+        client.connect(configs.App.port, configs.App.uri, async () => {
+            dbConnection = await MongoConnectionHelper.setConnection(configs.DbMongo);
+            dbTarget = dbConnection.db(TARGET_DB);
+        })
+    })();
 }
 
 const dateProperty = {
@@ -75,9 +76,9 @@ class Parser {
                 }
                 
                 await FluentHelper.sendLog(this.source, data);
-
             }
             catch (err) {
+                
                 console.log(`collection - ${err}`);
             }
 
@@ -92,8 +93,3 @@ class Parser {
         client.sendMessage({ source: this.source });
     }
 }
-client.on('message', async (message) => {
-    const parser = new Parser(message)
-    await parser.startParse();
-});
-

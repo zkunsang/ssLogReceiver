@@ -1,5 +1,6 @@
 const logger = require('fluent-logger');
 const configs = require('../configs.js');
+const SlackHelper = require('./SlackHelper');
 
 class FluentHelper {
     constructor() {
@@ -12,13 +13,20 @@ class FluentHelper {
         if (!this.fluentConfig.useFluent) return;
 
         this.logger = logger.createFluentSender(
-            this.fluentConfig.tag,
-            {
+            this.fluentConfig.tag, {
                 host: this.fluentConfig.host,
                 port: this.fluentConfig.port,
                 timeout: this.fluentConfig.timeout, // 1.0,
                 reconnectInterval: this.fluentConfig.reconnectInterval // 600000 // 10 minutes
             });
+
+        this.logger.on('error', (error) => {
+            SlackHelper.sendMessage(`td-agent - ${error}`);
+        });
+
+        this.logger.on('connect', (error) => {
+            SlackHelper.sendMessage(`connected - ${error}`);
+        });
     }
 
     async sendLog(category, log) {
