@@ -2,6 +2,7 @@ const moment = require('moment');
 
 const _ = require('lodash');
 const defaultDateFormat = 'YYYY-MM-DD HH:mm:ss';
+const detailDateFormat = 'YYYY-MM-DD HH:mm:ss.SSS';
 const YYYYMMDD = 'YYYYMMDD';
 class DateUtil {
     constructor() { }
@@ -30,17 +31,18 @@ class DateUtil {
     }
 
     utsToDs(uts, dateFormat = defaultDateFormat) {
+        return this.utsToDate(uts).format(dateFormat);
+    }
+
+    utsToDate(uts) {
         const length = uts.toString().length;
         if (length > 10)
             uts = parseInt(uts / 1000);
 
-        return moment.unix(uts).format(dateFormat);
+        return moment.unix(uts);
     }
 
-    getStrFromuts(uts) {
-
-    }
-
+    
     isBetween(now, startDate, endDate) {
         return moment.unix(now / 1000).isBetween(
             moment.unix(startDate),
@@ -54,4 +56,5 @@ class DateUtil {
 
 module.exports = new DateUtil();
 module.exports.DEFAULT_FORMAT = defaultDateFormat;
+module.exports.DETAIL_FORMAT = detailDateFormat;
 module.exports.YYYYMMDD = YYYYMMDD;
