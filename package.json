@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "live": "env NODE_ENV=live pm2 start app.js --name [live]logReceiver"
   },
   "keywords": [],
   "author": "",

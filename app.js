@@ -24,6 +24,12 @@ client.on('error', (err) => {
 });
 
 client.on('message', async (message) => {
+    const source = message.source;
+    if(source == 'ping') {
+	console.log('client ping arrived');
+	return;
+    }
+	
     const parser = new Parser(message)
     await parser.startParse();
 });
